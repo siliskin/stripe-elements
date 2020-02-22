@@ -1,24 +1,21 @@
 {
   "compilerOptions": {
-    "allowJs": true,
     "declaration": true,
-    "emitDeclarationOnly": true,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
-    "lib": [ "DOM", "ES2018" ],
+    "lib": [ "DOM", "ES2020", "DOM.Iterable" ],
     "moduleResolution": "node",
     "outDir": ".",
+    "plugins": [ { "name": "typescript-lit-html-plugin" } ],
     "sourceMap": true,
-    "target": "ES2018",
-    "plugins": [
-      { "name": "typescript-lit-html-plugin" }
-    ]
+    "target": "ES2018"
   },
   "include": [
-    "src/**/*"
+    "src/**/*.ts",
+    "@types"
   ],
   "exclude": [
     "node_modules",
-    "**/*.test.js"
+    "./d.ts"
   ]
 }

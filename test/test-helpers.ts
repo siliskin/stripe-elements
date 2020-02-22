@@ -1,7 +1,11 @@
+import type { StripeElements } from '../src/StripeElements';
+import type { StripePaymentRequest } from '../src/StripePaymentRequest';
+import type { ShadyDOM, ShadyCSS } from '@webcomponents/webcomponentsjs';
+
 import 'chai-things';
 import 'sinon-chai';
 
-import { LitElement, customElement, property, query } from 'lit-element';
+import { LitElement, customElement, property, query, TemplateResult } from 'lit-element';
 import { spreadProps } from '@open-wc/lit-helpers';
 
 import {
@@ -23,12 +27,23 @@ import {
 } from './mock-stripe';
 import { dash } from '../src/lib/strings';
 
-const getTemplate = (tagName, props = {}) =>
+declare global {
+  interface Window {
+    ShadyCSS: ShadyCSS;
+    ShadyDOM: ShadyDOM;
+  }
+
+  interface Node {
+    getRootNode(options?: GetRootNodeOptions): Node|ShadowRoot;
+  }
+}
+
+const getTemplate = (tagName: ReturnType<typeof unsafeStatic>, props = {}): TemplateResult =>
   html`<${tagName} ...="${spreadProps(props)}"></${tagName}>`;
 
 /* eslint-disable no-unused-vars */
 @customElement('primary-host') class PrimaryHost extends LitElement {
-  @property({ type: String }) tag;
+  @property({ type: String }) tag: string;
 
   get nestedElement() { return this.shadowRoot.querySelector(this.tag); }
 
@@ -41,17 +56,17 @@ const getTemplate = (tagName, props = {}) =>
 }
 
 @customElement('secondary-host') class SecondaryHost extends LitElement {
-  @query('primary-host') primaryHost;
+  @query('primary-host') primaryHost: Element;
 
-  @property({ type: String }) tag;
+  @property({ type: String }) tag: string;
 
   render() { return html`<primary-host tag="${this.tag}"></primary-host>`; }
 }
 
 @customElement('tertiary-host') class TertiaryHost extends LitElement {
-  @query('secondary-host') secondaryHost;
+  @query('secondary-host') secondaryHost: Element;
 
-  @property({ type: String }) tag;
+  @property({ type: String }) tag: string;
 
   render() { return html`<secondary-host tag="${this.tag}"></secondary-host>`; }
 }
@@ -77,10 +92,10 @@ export const EMPTY_CC_ERROR =
   'Your card number is empty.';
 
 export const BASE_DEFAULT_PROPS = Object.freeze({
-  billingDetails: {},
-  paymentMethodData: {},
-  sourceData: {},
-  tokenData: {},
+  billingDetails: undefined,
+  paymentMethodData: undefined,
+  sourceData: undefined,
+  tokenData: undefined,
   clientSecret: undefined,
   generate: 'source',
   action: undefined,
@@ -143,11 +158,7 @@ export const ALL_BLUE_STYLES = ALLOWED_STYLES.flatMap(camelCase => STYLE_PREFIXE
 
 export let fetchStub;
 
-/**
- * [events description]
- * @type {import('../src/StripeElements.js').StripeElements|import('../src/StripePaymentRequest.js').StripePaymentRequest}
- */
-export let element;
+export let element: StripeElements|StripePaymentRequest;
 export let initialStripeMountId;
 export let initialStripe;
 export const events = new Map();
@@ -255,7 +266,10 @@ export function restoreShadyDOM() {
 }
 
 export function mockStripe() {
-  window.Stripe = (key, opts) => new Stripe(key, opts);
+  const stripeStatic =
+    (key: string, opts: stripe.StripeOptions): stripe.Stripe => ((new Stripe(key, opts)) as unknown as stripe.Stripe);
+  stripeStatic.version = 0;
+  window.Stripe = stripeStatic
 }
 
 export function restoreStripe() {
@@ -291,7 +305,7 @@ export function spyConsoleWarn() {
 }
 
 export function restoreConsoleWarn() {
-  console.warn?.restore();
+  (console.warn as ReturnType<typeof stub>)?.restore();
 }
 
 export function stubFetch() {
@@ -305,7 +319,7 @@ export function restoreFetch() {
 
 /* FIXTURE */
 
-export function setupWithTemplate(template) {
+export function setupWithTemplate(template: TemplateResult) {
   return async function() {
     element = await fixture(template);
   };
@@ -391,7 +405,7 @@ export function assertEventDetail(eventType, expected) {
   };
 }
 
-export function assertProps(props, { deep } = {}) {
+export function assertProps(props, { deep = false } = {}) {
   return async function() {
     await element.updateComplete;
     Object.entries(props).forEach(([name, value]) => {
@@ -401,13 +415,13 @@ export function assertProps(props, { deep } = {}) {
   };
 }
 
-export function assertErrorMessage(message) {
+export function assertErrorMessage(message: string) {
   return function() {
     expect(element.error?.message).to.equal(message);
   };
 }
 
-export function assertPropsOk(props, { not } = {}) {
+export function assertPropsOk(props: any[], { not = false } = {}) {
   return async function() {
     await element.updateComplete;
     props.forEach(prop =>
@@ -423,15 +437,21 @@ export function testDefaultPropEntry([name, value]) {
   });
 }
 
-export function testReadOnlyProp(name) {
+export function testReadOnlyProp(name: string) {
   it(name, function() {
+    console.log('runtime   ', Object.getOwnPropertyDescriptor(element, 'element'))
+    debugger;
+    // this.timeout(10 * 60 * 1000)
     const init = element[name];
     element[name] = Math.random();
     expect(element[name], name).to.equal(init);
+    // return aTimeout(10 * 60 * 1000).then(() => {
+    //   expect(element[name], name).to.equal(init);
+    // })
   });
 }
 
-export function testWritableNotifyingProp(name) {
+export function testWritableNotifyingProp(name: string) {
   it(name, async function() {
     const synth = `${Math.random()}`;
     const eventName = `${dash(name)}-changed`;
@@ -441,7 +461,7 @@ export function testWritableNotifyingProp(name) {
   });
 }
 
-export function testReadonlyNotifyingProp(name) {
+export function testReadonlyNotifyingProp(name: string) {
   it(name, async function() {
     const synth = `${Math.random()}`;
     const eventName = `${dash(name)}-changed`;
@@ -451,7 +471,7 @@ export function testReadonlyNotifyingProp(name) {
   });
 }
 
-export function assertElementErrorMessage(message) {
+export function assertElementErrorMessage(message: string) {
   return function() {
     expect(element.error.message).to.equal(`<${element.constructor.is}>: ${message}`);
   };

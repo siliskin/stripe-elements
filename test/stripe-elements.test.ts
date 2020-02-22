@@ -1,5 +1,5 @@
 /* istanbul ignore file */
-import '../stripe-elements.js';
+import '../src/stripe-elements';
 
 import { expect, fixture, oneEvent, nextFrame } from '@open-wc/testing';
 import { match } from 'sinon';
@@ -69,6 +69,7 @@ import {
   updateComplete,
   validate,
 } from '../test/test-helpers';
+
 import {
   CARD_DECLINED_ERROR,
   INCOMPLETE_CARD_ERROR,
@@ -76,7 +77,8 @@ import {
   SHOULD_ERROR_KEY,
   SUCCESS_RESPONSES,
 } from '../test/mock-stripe';
-import { elem, not } from './lib/predicates.js';
+
+import { elem, not } from '../src/lib/predicates';
 
 const DEFAULT_PROPS = Object.freeze({
   ...BASE_DEFAULT_PROPS,
@@ -136,9 +138,10 @@ describe('<stripe-elements>', function() {
       Object.entries(DEFAULT_PROPS).forEach(testDefaultPropEntry);
     });
 
-    describe('has read-only property', function readOnly() {
+    describe.only('has read-only property', function readOnly() {
       beforeEach(setupNoProps);
-      READ_ONLY_PROPS.forEach(testReadOnlyProp);
+      testReadOnlyProp('element')
+      // READ_ONLY_PROPS.forEach(testReadOnlyProp);
     });
 
     describe('notifies when setting property', function notifying() {

@@ -1,5 +1,5 @@
 /* istanbul ignore file */
-import '../stripe-payment-request.js';
+import '../src/stripe-payment-request';
 
 import { expect, fixture, nextFrame } from '@open-wc/testing';
 import { stub } from 'sinon';
@@ -65,7 +65,7 @@ import {
   SUCCESSFUL_SOURCE,
   SUCCESSFUL_TOKEN,
 } from '../test/mock-stripe';
-import { elem, not } from './lib/predicates';
+import { elem, not } from '../src/lib/predicates';
 
 const DEFAULT_PROPS = Object.freeze({
   ...BASE_DEFAULT_PROPS,

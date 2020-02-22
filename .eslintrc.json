@@ -1,6 +1,5 @@
 {
   "extends": "@pwrs",
-  "parser": "babel-eslint",
   "globals": {
     "ShadyCSS": true,
     "Stripe": true

@@ -1,7 +1,7 @@
 import commonjs from '@rollup/plugin-commonjs';
 import litcss from 'rollup-plugin-lit-css';
 import resolve from '@rollup/plugin-node-resolve';
-import babel from 'rollup-plugin-babel';
+import typescript from '@rollup/plugin-typescript';
 import pkg from './package.json';
 
 const deps = Object.keys(pkg.dependencies);
@@ -13,9 +13,9 @@ const external = id =>
 
 export default {
   input: [
-    'src/index.js',
-    'src/stripe-elements.js',
-    'src/stripe-payment-request.js',
+    'src/index.ts',
+    'src/stripe-elements.ts',
+    'src/stripe-payment-request.ts',
   ],
   external,
   output: {
@@ -25,9 +25,9 @@ export default {
     sourcemap: true,
   },
   plugins: [
-    babel({ externalHelpers: true, runtimeHelpers: true, babelrc: true }),
+    typescript(),
+    resolve({ extensions: ['.ts', '.css', '.html'], dedupe: id => id.includes('lit') }),
     litcss(),
     commonjs(),
-    resolve(),
   ],
 };
